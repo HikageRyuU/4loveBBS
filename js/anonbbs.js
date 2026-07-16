@@ -50,10 +50,17 @@
     const floors = document.querySelectorAll('.reply-floor');
     if (!floors.length || !window.THREAD_BASE_TIME) return;
     floorsInited = true;
-    let accumulatedTime = window.THREAD_BASE_TIME;
 
-    floors.forEach((floor, index) => {
-      if (floor.dataset.fold) return;
+    let accumulatedTime = window.THREAD_BASE_TIME;
+    let realFloorNum = 0;
+
+    floors.forEach((floor) => {
+      if (floor.dataset.fold) {
+        const foldNum = parseInt(floor.dataset.fold, 10) || 0;
+        realFloorNum += foldNum;
+        return; 
+      }
+
       if (floor.querySelector('.floor-header')) return;
 
       try {
@@ -62,7 +69,7 @@
         const cookieEl = document.createElement('span');
         cookieEl.className = 'floor-cookie';
         const customCookie = floor.dataset.cookie;
-        cookieEl.textContent = customCookie || generateCookie(window.THREAD_ID, index);
+        cookieEl.textContent = customCookie || generateCookie(window.THREAD_ID, realFloorNum);
 
         if (floor.dataset.op === 'true') {
           const opBadge = document.createElement('span');
@@ -93,11 +100,12 @@
         const footer = document.createElement('div');
         footer.className = 'floor-footer';
         footer.innerHTML = `
-          <span class="floor-number">第 ${index} 层</span>
+          <span class="floor-number">第 ${realFloorNum} 层</span>
           <span class="floor-action">举报</span>
           <span class="floor-action">引用</span>
         `;
         floor.appendChild(footer);
+        realFloorNum += 1;
       } catch (e) {}
     });
   }
