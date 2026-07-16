@@ -658,3 +658,123 @@ body {
     padding-right: 34px;
   }
 }
+
+/* 登录页 */
+.login-page {
+  min-height: calc(100vh - 56px - 60px);
+  padding: 60px 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+.login-wrapper {
+  width: 100%;
+  max-width: 480px;
+  padding: 0 16px;
+}
+.login-card {
+  background: var(--card-bg);
+  border: 1px solid var(--floor-border);
+  border-radius: 8px;
+  padding: 28px 32px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+}
+.login-title {
+  font-size: 18px;
+  color: var(--text-color);
+  margin-bottom: 20px;
+  text-align: center;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 12px;
+}
+.login-form .form-item {
+  margin-bottom: 16px;
+}
+.login-btn {
+  width: 100%;
+  margin-top: 8px;
+}
+.login-tip {
+  font-size: 12px;
+  color: #999;
+  text-align: center;
+  margin-top: 16px;
+}
+
+/* 签到卡片 */
+.checkin-card {
+  background: var(--card-bg);
+  border: 1px solid var(--floor-border);
+  border-radius: 8px;
+  padding: 16px 20px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  margin-bottom: 24px;
+}
+.checkin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #eee;
+}
+.checkin-header h3 {
+  font-size: 16px;
+  color: var(--text-color);
+  margin: 0;
+}
+.checkin-tip {
+  font-size: 12px;
+  color: #999;
+}
+#checkinBtn {
+  width: 100%;
+}
+
+/* 请先登录 */
+.fake-toast {
+  position: fixed;
+  top: 25%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.75);
+  color: #fff;
+  padding: 10px 22px;
+  border-radius: 4px;
+  font-size: 14px;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  z-index: 9999;
+}
+.fake-toast.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* 折叠提示 */
+.reply-floor[data-fold] {
+  background: transparent;
+  border: none;
+  padding: 8px 0;
+  margin: 4px 0;
+  text-align: center;
+  color: #888;
+  font-size: 13px;
+}
+.fold-tip {
+  display: inline-block;
+}
+
+/* 置顶徽章 */
+.top-badge {
+  background: var(--admin-color);
+  color: #fff;
+  font-size: 11px;
+  padding: 1px 4px;
+  margin-right: 6px;
+  border-radius: 2px;
+  font-weight: normal;
+  vertical-align: middle;
+  display: inline-block;
+}

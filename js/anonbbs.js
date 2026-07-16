@@ -1,19 +1,33 @@
 (function() {
   // 生成饼干
-  function generateCookie(threadId, floorIndex) {
-    const seed = threadId + '_floor_' + floorIndex;
-    let hash = 5381;
-    for (let i = 0; i < seed.length; i++) {
-      hash = ((hash << 5) + hash) + seed.charCodeAt(i);
-      hash = hash | 0;
+  function xmur3(str) {
+    let h = 1779033703 ^ str.length;
+    for (let i = 0; i < str.length; i++) {
+      h = Math.imul(h ^ str.charCodeAt(i), 3432918353);
+      h = h << 13 | h >>> 19;
     }
+    h = Math.imul(h ^ h >>> 16, 2246822507);
+    h = Math.imul(h ^ h >>> 13, 3266489909);
+    return (h ^ h >>> 16) >>> 0;
+  }
 
-    let n = Math.abs(hash);
+  function mulberry32(seed) {
+    return function() {
+      seed += 0x6D2B79F5;
+      let t = seed;
+      t = Math.imul(t ^ t >>> 15, t | 1);
+      t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+
+  function generateCookie(threadId, floorIndex) {
+    const seed = xmur3(threadId + '_floor_' + floorIndex);
+    const random = mulberry32(seed);
     const chars = 'BbCcDdEeFfGgHhJjKkLlMmNnPpQqRrSsTtUuVvWwXxYyZz23456789';
     let result = '';
     for (let i = 0; i < 8; i++) {
-      n = (n * 1145141919 + 12345) & 0x7fffffff;
-      result += chars[n % chars.length];
+      result += chars[Math.floor(random() * chars.length)];
     }
     return 'No.' + result;
   }
@@ -30,25 +44,26 @@
     return `${y}/${m}/${day} ${h}:${min}:${s}`;
   }
 
+  let floorsInited = false;
   function initFloors() {
+    if (floorsInited) return;
     const floors = document.querySelectorAll('.reply-floor');
     if (!floors.length || !window.THREAD_BASE_TIME) return;
-
+    floorsInited = true;
     let accumulatedTime = window.THREAD_BASE_TIME;
 
     floors.forEach((floor, index) => {
+      if (floor.dataset.fold) return;
+      if (floor.querySelector('.floor-header')) return;
+
       try {
-        // 楼层头部
         const header = document.createElement('div');
         header.className = 'floor-header';
-
-        // 饼干
         const cookieEl = document.createElement('span');
         cookieEl.className = 'floor-cookie';
         const customCookie = floor.dataset.cookie;
         cookieEl.textContent = customCookie || generateCookie(window.THREAD_ID, index);
 
-        // 楼主徽章
         if (floor.dataset.op === 'true') {
           const opBadge = document.createElement('span');
           opBadge.className = 'floor-badge op-badge';
@@ -57,7 +72,6 @@
           cookieEl.classList.add('op-cookie');
         }
 
-        // 管理员徽章
         if (floor.dataset.admin === 'true') {
           const adminBadge = document.createElement('span');
           adminBadge.className = 'floor-admin-badge';
@@ -66,7 +80,6 @@
           cookieEl.classList.add('admin-cookie');
         }
 
-        // 计算并显示时间
         const timeOffset = parseInt(floor.dataset.timeOffset) || 0;
         accumulatedTime += timeOffset * 1000;
         const timeEl = document.createElement('span');
@@ -77,7 +90,6 @@
         header.appendChild(timeEl);
         floor.insertBefore(header, floor.firstChild);
 
-        // 楼层底部
         const footer = document.createElement('div');
         footer.className = 'floor-footer';
         footer.innerHTML = `
@@ -86,44 +98,73 @@
           <span class="floor-action">引用</span>
         `;
         floor.appendChild(footer);
-
-      } catch (e) {
-      }
+      } catch (e) {}
     });
   }
 
-  // 兼容DOM加载状态
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initFloors);
-  } else {
-    initFloors();
+  window.showToast = function(msg) {
+    const toast = document.getElementById('fakeToast');
+    if (!toast) return; 
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(function() { toast.classList.remove('show'); }, 1500);
   }
-})();
 
-// 伪发帖
-(function initFakePostForm() {
-  const form = document.getElementById('fake-post-form');
-  if (!form) return;
+  // 伪发帖
+  function initFakePostForm() {
+    const form = document.getElementById('fake-post-form');
+    if (!form) return;
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const titleInput = form.querySelector('[name=title]');
+      if (titleInput && !titleInput.value.trim()) {
+        showToast('请输入帖子标题');
+        return;
+      }
+      const btn = form.querySelector('.submit-btn');
+      const originalText = btn.textContent;
+      btn.textContent = '提交中...';
+      btn.disabled = true;
+      setTimeout(() => {
+        btn.textContent = originalText;
+        btn.disabled = false;
+        showToast('请先登录');
+        form.reset();
+        setTimeout(() => location.reload(), 800);
+      }, 600);
+    });
+  }
 
-  form.addEventListener('submit', function(e) {
-    e.preventDefault();
-    const title = form.querySelector('[name=title]').value.trim();
-    
-    if (!title) {
-      alert('请输入帖子标题');
-      return;
-    }
+  // 伪签到
+  function initFakeCheckin() {
+    const checkinBtn = document.getElementById('checkinBtn');
+    if (!checkinBtn) return;
+    checkinBtn.addEventListener('click', function() {
+      showToast('请先登录');
+      setTimeout(() => location.reload(), 800);
+    });
+  }
 
-    const btn = form.querySelector('.submit-btn');
-    const originalText = btn.textContent;
-    btn.textContent = '提交中...';
-    btn.disabled = true;
+  // 伪登录
+  function initFakeLogin() {
+    const loginForm = document.getElementById('loginForm');
+    if (!loginForm) return;
+    loginForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      showToast('暂未开放');
+    });
+  }
 
-    setTimeout(() => {
-      btn.textContent = originalText;
-      btn.disabled = false;
-      alert('发布失败');
-      form.reset();
-    }, 600);
-  });
+  function initAll() {
+    initFloors();
+    initFakePostForm();
+    initFakeCheckin();
+    initFakeLogin();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAll);
+  } else {
+    initAll();
+  }
 })();
