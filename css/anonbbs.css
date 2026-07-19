@@ -630,7 +630,7 @@ body {
 
 @media screen and (min-width: 925px) {
   body {
-    background-image: url("/4loveBBS/img/bg.jpg");
+    background-image: url("/4loveBBS/img/bg.png");
     background-size: min(1920px, max(2000px, 90vw));
     background-position: center;
     background-attachment: fixed;

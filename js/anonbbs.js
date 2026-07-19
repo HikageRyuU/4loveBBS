@@ -159,7 +159,7 @@
     if (!loginForm) return;
     loginForm.addEventListener('submit', function(e) {
       e.preventDefault();
-      showToast('暂未开放');
+      showToast('请先注册');
     });
   }
 
